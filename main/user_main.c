@@ -15,14 +15,14 @@ the server, including WiFi connection management capabilities, some IO etc.
 #include <libesphttpd/esp.h>
 #include "libesphttpd/httpd.h"
 #include "io.h"
-#include "libesphttpd/httpdespfs.h"
+#include "libesphttpd/httpd-espfs.h"
 #include "cgi.h"
 #include "libesphttpd/cgiwifi.h"
 #include "libesphttpd/cgiflash.h"
 #include "libesphttpd/auth.h"
-#include "libesphttpd/espfs.h"
+#include "espfs.h"
 #include "libesphttpd/captdns.h"
-#include "libesphttpd/webpages-espfs.h"
+#include "espfs_image.h"
 #include "libesphttpd/cgiwebsocket.h"
 #include "libesphttpd/httpd-freertos.h"
 #include "libesphttpd/route.h"
@@ -233,9 +233,6 @@ static esp_err_t wifi_event_handler(void *ctx, system_event_t *event)
                 event->event_info.sta_disconnected.aid);
         xEventGroupClearBits(wifi_ap_event_group, CONNECTED_BIT);
         break;
-    case SYSTEM_EVENT_SCAN_DONE:
-        wifiScanDoneCb();
-        break;
     default:
         break;
     }
@@ -304,7 +301,11 @@ void user_init(void) {
 // FIXME: Re-enable this when capdns is fixed for esp32
 //	captdnsInit();
 
-	espFsInit((void*)(webpages_espfs_start));
+	EspFsConfig espfs_conf = {
+		.memAddr = espfs_image_bin,
+	};
+	EspFs *fs = espFsInit(&espfs_conf);
+	httpdRegisterEspfs(fs);
 
 	tcpip_adapter_init();
 	httpdFreertosInit(&httpdFreertosInstance,
