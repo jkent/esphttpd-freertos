@@ -6,5 +6,5 @@ process:
   - babel-minify
   '*.html':
   - html-minifier
-#  '*':
-#  - heatshrink
+  '*':
+  - heatshrink
